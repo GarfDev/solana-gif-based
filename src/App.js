@@ -3,16 +3,12 @@ import twitterLogo from './assets/twitter-logo.svg';
 import './App.css';
 import { Connection, PublicKey, clusterApiUrl } from '@solana/web3.js';
 import {
-  Program, Provider, web3
+  Program, Provider
 } from '@project-serum/anchor';
 
 import idl from './idl.json';
-import kp from './keypair.json'
 
 // Create a keypair for the account that will hold the GIF data.
-const arr = Object.values(kp._keypair.secretKey)
-const secret = new Uint8Array(arr)
-const baseAccount = web3.Keypair.fromSecretKey(secret)
 
 // Get our program's id from the IDL file.
 const programID = new PublicKey(idl.metadata.address);
@@ -36,6 +32,7 @@ const getProvider = () => {
 // All your other Twitter and GIF constants you had.
 
 // Constants
+const BASE_ACCOUNT_PUBLIC = '34REdPVgAwsZHHGVG3u5Wm9KtUVck3Hb5x94doPYxFrH';
 const TWITTER_HANDLE = '_buildspace';
 const TWITTER_LINK = `https://twitter.com/${TWITTER_HANDLE}`;
 
@@ -109,7 +106,7 @@ const App = () => {
 
       await program.rpc.addGif(inputValue, {
         accounts: {
-          baseAccount: baseAccount.publicKey.toString(),
+          baseAccount: BASE_ACCOUNT_PUBLIC,
           user: provider.wallet.publicKey.toString(),
         },
       });
@@ -161,14 +158,14 @@ const App = () => {
     try {
       const provider = getProvider();
       const program = new Program(idl, programID, provider);
-      const account = await program.account.baseAccount.fetch(baseAccount.publicKey.toString());
+      const account = await program.account.baseAccount.fetch(BASE_ACCOUNT_PUBLIC);
 
       console.log("Got the account", account)
-      setGifList(account.gifList)
+      setGifList(account.gifList || [])
 
     } catch (error) {
       console.log("Error in getGifList: ", error)
-      setGifList(null);
+      setGifList([]);
     }
   }
 
