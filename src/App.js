@@ -9,10 +9,6 @@ import {
 import idl from './idl.json';
 import kp from './keypair.json'
 
-
-// SystemProgram is a reference to the Solana runtime!
-const { SystemProgram } = web3;
-
 // Create a keypair for the account that will hold the GIF data.
 const arr = Object.values(kp._keypair.secretKey)
 const secret = new Uint8Array(arr)
@@ -76,29 +72,6 @@ const App = () => {
   };
 
 
-  const createGifAccount = async () => {
-    try {
-      const provider = getProvider();
-      const program = new Program(idl, programID, provider);
-      console.log("ping")
-
-      await program.rpc.startStuffOff({
-        accounts: {
-          baseAccount: baseAccount.publicKey.toString(),
-          user: provider.wallet.publicKey.toString(),
-          systemProgram: SystemProgram.programId.toString(),
-          },
-        signers: [baseAccount]
-      });
-      console.log("Created a new BaseAccount w/ address:", baseAccount.publicKey.toString())
-      await getGifList();
-
-    } catch (error) {
-      console.log("Error creating BaseAccount account:", error)
-    }
-  }
-
-
   const connectWallet = async () => {
     const { solana } = window;
 
@@ -133,7 +106,7 @@ const App = () => {
     try {
       const provider = getProvider();
       const program = new Program(idl, programID, provider);
-  
+
       await program.rpc.addGif(inputValue, {
         accounts: {
           baseAccount: baseAccount.publicKey.toString(),
@@ -141,57 +114,48 @@ const App = () => {
         },
       });
       console.log("GIF successfully sent to program", inputValue)
-  
+
       await getGifList();
     } catch (error) {
       console.log("Error sending GIF:", error)
     }
   };
-  
+
 
   const renderConnectedContainer = () => {
     // If we hit this, it means the program account hasn't been initialized.
-    if (gifList === null) {
-      return (
-        <div className="connected-container">
-          <button className="cta-button submit-gif-button" onClick={createGifAccount}>
-            Do One-Time Initialization For GIF Program Account
-          </button>
-        </div>
-      )
-    }
+
     // Otherwise, we're good! Account exists. User can submit GIFs.
-    else {
-      return (
-        <div className="connected-container">
-          <form
-            onSubmit={(event) => {
-              event.preventDefault();
-              sendGif();
-            }}
-          >
-            <input
-              type="text"
-              placeholder="Enter gif link!"
-              value={inputValue}
-              onChange={onInputChange}
-            />
-            <button type="submit" className="cta-button submit-gif-button">
-              Submit
-            </button>
-          </form>
-          <div className="gif-grid">
-            {/* We use index as the key instead, also, the src is now item.gifLink */}
-            {gifList.map((item, index) => (
-              <div className="gif-item" key={index}>
-                <img src={item.gifLink} alt={`random-${index}`} />
-              </div>
-            ))}
-          </div>
+    return (
+      <div className="connected-container">
+        <form
+          onSubmit={(event) => {
+            event.preventDefault();
+            sendGif();
+          }}
+        >
+          <input
+            type="text"
+            placeholder="Enter gif link!"
+            value={inputValue}
+            onChange={onInputChange}
+          />
+          <button type="submit" className="cta-button submit-gif-button">
+            Submit
+          </button>
+        </form>
+        <div className="gif-grid">
+          {/* We use index as the key instead, also, the src is now item.gifLink */}
+          {gifList.map((item, index) => (
+            <div className="gif-item" key={index}>
+              <img src={item.gifLink} alt={`random-${index}`} />
+            </div>
+          ))}
         </div>
-      )
-    }
+      </div>
+    )
   }
+
 
   const getGifList = async () => {
     try {
